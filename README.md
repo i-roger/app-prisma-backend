@@ -1,36 +1,136 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Aplicação desenvolvida com Next + TypeScript + Prisma + Tailwindcss
 
-## Getting Started
+# 1 Instalação e criação do APP:
+    npx create-next-app@latest my-project --typescript --eslint
 
-First, run the development server:
+# 2 Instalação do Prisma | Dica: Instalar extensão do Prisma
+    npm install prisma --save-dev
+    npx prisma init //Cria uma pasta do Prisma automáticamente
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2.1 Após isso defina o modelo do BD:
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+model NOME DA TABELA {
+  id Int @default(autoincrement()) @id
+  nome String
+  endereco String
+}
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2.2 CONECTANDO O BANCO DE DADOS AO PRISMA CRIAREMOS UMA URL:
+Nesse exemplo usei a railway.app para criar um DB postgre
+Copie a informação da URL e coloque em ".env"
+    DATABASE_URL= URL DO BD
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2.3 Usar o comando abaixo para gerar o modelo do banco de dados no servidor:
+    npx prisma migrate dev
 
-## Learn More
+(MUDOU INFORMAÇÕES?)Se for feito alguma mudança no modelo após a migração, usar o comando abaixo para atualizar o modelo no server:
+    npx prisma generate
 
-To learn more about Next.js, take a look at the following resources:
+2.4 Criar o caminho abaixo na raiz do projeto:
+    "lib/db.ts"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Dentro de db.ts colar a função singleton do Prisma
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+import { PrismaClient } from "@prisma/client"
 
-## Deploy on Vercel
+const prismaClientSingleton = () => {
+    return new PrismaClient();
+};
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+const globalForPrisma = globalThis as unknown as {
+    prisma: PrismaClientSingleton | undefined;
+};
+
+const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+export default prisma;
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+# 3 Configurando funções do backend
+
+3.1 Criar o caminho abaixo na "/src" do projeto:
+"api/user/route.ts"
+
+Dentro de route.ts vão as configurações para as ROTAS usando HTTP Verbs (No caso aqui só utilizei o GET e o POST)
+
+Primeiramente faça os devidos imports:
+    import { NextRequest, NextResponse } from "next/server";
+    import prisma from "../../../../lib/db";
+
+
+##################################################
+
+export async function GET(req: NextRequest) {
+    try {
+        const users = await prisma.cliente.findMany();
+        return Response.json({message: "OK", users});
+    } catch (err) {
+        return NextResponse.json(
+            {
+                message:"Error",
+                err,
+            },
+            {
+                status: 500,
+            }
+        );
+    }
+}
+
+##############################################
+
+export async function POST(req: NextRequest) {
+  const { nome, endereco } = await req.json();
+
+  try {
+    const cliente = await prisma.cliente.create({
+      data: {
+        nome,
+        endereco,
+      },
+    });
+    return Response.json({ message: "OK", cliente });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        message: "Error",
+        err,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+# 4 (DO FRONTEND PARA O BACKEND) Capturando informações para enviar dados no BD
+4.1 Configure o componente :
+
+"use client";
+import { useRef } from "react"; ---------------------------------------// Importa a função useRef() para capturar dados de um componente.
+
+export default function Home() {
+  const nome = useRef<HTMLInputElement>(null); ------------------------// Declarando variável que vai receber o dado.
+
+  async function enviar() { -------------------------------------------// Ela precisa ser asyncrona porque ela precisa esperar que a busca no backend retorne alguma coisa.
+    const res = await fetch("http://localhost:3000/api/user", {
+      method: "POST", -------------------------------------------------// Utilizando metodo POST para envio de dados
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: nome.current?.value, --------------------------------------------// Passando o valor capturado através do body para o backend.
+        endereco: endereco.current?.value, ------------------------------------// Passando o valor capturado através do body para o backend.
+      }),
+    });
+    console.log(res);
+  }
+
+  return (
+        <input type="text" ref={nome}/> ---------------------------------------// Ref é chamada passando o nome da variável designada.
+  );
+}
+
