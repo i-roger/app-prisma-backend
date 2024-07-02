@@ -106,7 +106,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-# 4 (DO FRONTEND PARA O BACKEND) Capturando informações para enviar dados no BD
+# 4 (DO FRONTEND PARA O BACKEND) Capturando informações para enviar dados para o BD
+
 4.1 Configure o componente :
 
 "use client";
@@ -114,6 +115,22 @@ import { useRef } from "react"; ---------------------------------------// Import
 
 export default function Home() {
   const nome = useRef<HTMLInputElement>(null); ------------------------// Declarando variável que vai receber o dado.
+
+  Utilizando AXIOS:
+    const user = {nome} // Para enviar no POST!!!
+  const dataPost = async () => {
+    try {
+      const response = await axios.post('https://jsonplaceholder.typicode.com/users', user);
+      console.log('Dados:', response.data);
+      setBd(response.data)
+      console.log(bd)
+
+    } catch (error:any) {
+      console.error('Erro ao fazer a requisição:', error.message);
+    }
+  }
+
+  POST Utilizando Método antigo ABAIXO:
 
   async function enviar() { -------------------------------------------// Ela precisa ser asyncrona porque ela precisa esperar que a busca no backend retorne alguma coisa.
     const res = await fetch("http://localhost:3000/api/user", {
@@ -134,3 +151,37 @@ export default function Home() {
   );
 }
 
+# 5 Como criar um lugar para guardar os dados que são recebidos da API
+
+5.1 Criando um Array para receber os dados da API
+---> import { useState } from "react"
+
+---> const [ bancoDeDados, setBancoDeDados ] = useState[]([])
+
+Para uma melhor organização podemos definir que tipo de dado será puxado
+da API, usando Interfaces.
+
+--->interface IDados {
+--->  id: number;
+--->  name: string;
+--->}
+
+Após criar a interface, devemos modificar o "useState" que criamos:
+---> const [ bancoDeDados, setBancoDeDados ] = useState<IDados[]>([])
+Fazendo isso não será necessário configurar o tipo na hora de mapear no HTML.
+
+5.2 Fazendo aparecer no Front-End:
+Englobo a parte do código que desejo que apareça os dados da api.
+Passo a propriedade "key" no primeiro elemento depois da função .map()
+para não ter erros com o TYPESCRIPT.
+
+---> {bancoDeDados.map( (user) => { 
+--->   <div key={user.id}>
+--->     <p>{user.id}</p>
+--->     <p>{user.name}</p>
+--->   </div>
+---> } ) }
+
+IMPORTANTE! ---> O "user" usado dentro da função ".map((user) => {<div>...})"
+é o nome que eu quis dar para cada dado mapeado dentro da api.
+Poderia ser "x", "y", "dado".

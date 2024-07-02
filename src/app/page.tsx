@@ -3,56 +3,66 @@ import { useState, useRef } from "react";
 import axios from "axios"
 
 export default function Home() {
-  const nome = useRef<HTMLInputElement>(null);
-  const endereco = useRef<HTMLInputElement>(null);
+  const nomeInput = useRef<HTMLInputElement>(null);
+  const enderecoInput = useRef<HTMLInputElement>(null);
+  const name = nomeInput.current?.value;
+  const address = enderecoInput.current?.value;
 
   const [bd, setBd] = useState<IDados[]>([]);
 
   interface IDados {
     id: number;
-    name: string;
+    nome: string;
+    endereco: string;
   }
 
-  const fetchData = async () => {
+  const buscarUsers = async () => {
     try {
-      const response = await axios.get('https://jsonplaceholder.typicode.com/users');
-      // console.log('Dados:', response.data);
-      setBd(response.data)
-      console.log(bd)
+      const response = await axios.get('http://localhost:3000/api/user');
+      console.log('Dados:', response.data.users);
+      setBd(response.data.users)
 
     } catch (error:any) {
       console.error('Erro ao fazer a requisição:', error.message);
     }
   }
 
-  const user = {nome, endereco} // Para enviar no POST!!!
-  const dataPost = async () => {
+ // Método POST : Usando AXIOS.post()
+  const enviar = async () => {
+    const dadoParaPost = {nome: nomeInput.current?.value, endereco: enderecoInput.current?.value}
     try {
-      const response = await axios.post('https://jsonplaceholder.typicode.com/users', user);
-      console.log('Dados:', response.data);
-      setBd(response.data)
-      console.log(bd)
+      const response = await axios.post('http://localhost:3000/api/user', dadoParaPost)
+      console.log('Dados:', response);
+      setBd(response.data.users)
 
     } catch (error:any) {
       console.error('Erro ao fazer a requisição:', error.message);
     }
   }
 
-  async function enviar() {
-    //Ela precisa ser asyncrona porque ela busca nos servidor backend
-    const res = await fetch("http://localhost:3000/api/user", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        nome: nome.current?.value,
-        endereco: endereco.current?.value,
-      }),
-    });
-    console.log(res);
-  }
+  // Método POST : Antigo, via FETCH
+  // async function enviar() {
+  //   //Ela precisa ser asyncrona porque ela busca nos servidor backend
+  //   const res = await fetch("http://localhost:3000/api/user", {
+  //     method: "POST",
+  //     headers: {
+  //       "content-type": "application/json",
+  //     },
+  //     body: JSON.stringify({
+  //       nome: nomeInput.current?.value,
+  //       endereco: enderecoInput.current?.value,
+  //     }),
+  //   });
+  //   console.log(res);
+  // }
 
+  // Método DELETE
+  const apagar = async () => {
+    
+    try{
+      const response = await axios.delete('http://localhost:3000/api/user', )
+    }
+  }
   return (
     <div>
     <main className="flex justify-center items-center flex-col ">
@@ -62,23 +72,26 @@ export default function Home() {
             <h1>Cadastro do usuário</h1>
           </div>
           <label htmlFor="nome">Nome: </label>
-          <input name="nome" type="text" ref={nome}/>
+          <input name="nome" type="text" ref={nomeInput}/>
           <label htmlFor="endereco">Endereço: </label>
-          <input name="endereco" type="text" ref={endereco}/>
+          <input name="endereco" type="text" ref={enderecoInput}/>
           <button type="button" onClick={enviar}>
             Enviar Pedido
           </button>
-          <button type="button" onClick={fetchData}>
-            Teste
+          <button type="button" onClick={buscarUsers}>
+            Buscar Users
           </button>
         </form>
       </div>
-      {bd.map((user) => (
-        <div key={user.id} className="flex justify-center items-center gap-4">
-          <p>{user.id}</p>
-          <p>{user.name}</p>
+      <div className="flex mt-10 flex-col gap-4">
+      {bd?.map((user) => (
+        <div key={user.id} className="flex flex-col p-2 rounded bg-red-300">
+          <p>Nome: {user.nome}</p>
+          <p>Endereço: {user.endereco}</p>
+          <button onClick={apagar}className="bg-red-600 p-2 rounded">Apagar</button>
         </div>
       ))}
+      </div>
     </main>
   </div>
   );
