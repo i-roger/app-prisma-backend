@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../lib/db";
+import { request } from "http";
+import { useId } from "react";
 
 //Os HTTPS VERBS devem ser usados para rota API -> localhost:3000/api
 // (GET, POST, PUT ....)
@@ -45,3 +47,22 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+
+// Método Delete :
+// export async function DELETE(req: NextRequest) {
+//   try {
+//       const users = await prisma.cliente.delete();
+//       return Response.json({message: "OK", users});
+//   } catch (err) {
+//       return NextResponse.json(
+//           {
+//               message:"Error",
+//               err,
+//           },
+//           {
+//               status: 500,
+//           }
+//       );
+//   }
+// }

@@ -15,7 +15,7 @@ export default function Home() {
     nome: string;
     endereco: string;
   }
-
+// Método GET :
   const buscarUsers = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/user');
@@ -27,9 +27,11 @@ export default function Home() {
     }
   }
 
- // Método POST : Usando AXIOS.post()
+// Método POST : Usando AXIOS.post()
   const enviar = async () => {
+
     const dadoParaPost = {nome: nomeInput.current?.value, endereco: enderecoInput.current?.value}
+
     try {
       const response = await axios.post('http://localhost:3000/api/user', dadoParaPost)
       console.log('Dados:', response);
@@ -40,29 +42,17 @@ export default function Home() {
     }
   }
 
-  // Método POST : Antigo, via FETCH
-  // async function enviar() {
-  //   //Ela precisa ser asyncrona porque ela busca nos servidor backend
-  //   const res = await fetch("http://localhost:3000/api/user", {
-  //     method: "POST",
-  //     headers: {
-  //       "content-type": "application/json",
-  //     },
-  //     body: JSON.stringify({
-  //       nome: nomeInput.current?.value,
-  //       endereco: enderecoInput.current?.value,
-  //     }),
-  //   });
-  //   console.log(res);
-  // }
-
-  // Método DELETE
-  const apagar = async () => {
-    
+// Método DELETE :
+  const apagar = async (id:number) => {
+    console.log(id)
     try{
-      const response = await axios.delete('http://localhost:3000/api/user', )
+      const response = await axios.delete(`http://localhost:3000/api/user/${id}`)
+      console.log(response)
+    } catch (error:any){
+      console.log(error)
     }
   }
+
   return (
     <div>
     <main className="flex justify-center items-center flex-col ">
@@ -88,7 +78,7 @@ export default function Home() {
         <div key={user.id} className="flex flex-col p-2 rounded bg-red-300">
           <p>Nome: {user.nome}</p>
           <p>Endereço: {user.endereco}</p>
-          <button onClick={apagar}className="bg-red-600 p-2 rounded">Apagar</button>
+          <button onClick={() => apagar(user.id)} className="bg-red-600 p-2 rounded">Apagar</button>
         </div>
       ))}
       </div>
