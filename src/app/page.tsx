@@ -5,8 +5,6 @@ import axios from "axios"
 export default function Home() {
   const nomeInput = useRef<HTMLInputElement>(null);
   const enderecoInput = useRef<HTMLInputElement>(null);
-  const name = nomeInput.current?.value;
-  const address = enderecoInput.current?.value;
 
   const [bd, setBd] = useState<IDados[]>([]);
 
@@ -15,12 +13,20 @@ export default function Home() {
     nome: string;
     endereco: string;
   }
+
 // Método GET :
   const buscarUsers = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/user');
-      console.log('Dados:', response.data.users);
+      const qtdClientes = response.data.users.length
       setBd(response.data.users)
+      console.log(response.data.users)
+
+      if (qtdClientes === 0) {
+        console.log('O BD está vazio!')
+      } else {
+        console.log(`O BD tem ${qtdClientes} Clientes!`)
+      }
 
     } catch (error:any) {
       console.error('Erro ao fazer a requisição:', error.message);
@@ -44,10 +50,13 @@ export default function Home() {
 
 // Método DELETE :
   const apagar = async (id:number) => {
-    console.log(id)
+    console.log('ID do card para exclusão: ', id)
     try{
-      const response = await axios.delete(`http://localhost:3000/api/user/${id}`)
-      console.log(response)
+      const response = await axios.delete('http://localhost:3000/api/user', {
+        data: JSON.stringify(id)
+      })
+      buscarUsers() // Atualiza Lista - Para remapear o DB Novamente.
+      console.log('Resposta do BACKEND: ', response)
     } catch (error:any){
       console.log(error)
     }
@@ -56,7 +65,7 @@ export default function Home() {
   return (
     <div>
     <main className="flex justify-center items-center flex-col ">
-      <div className="flex flex-col w-[300px]">
+      <div className="flex flex-col w-[400px] bg-[#141920] p-4 m-10 rounded shadow">
         <form className="flex flex-col">
           <div className="flex justify-center">
             <h1>Cadastro do usuário</h1>
@@ -65,20 +74,22 @@ export default function Home() {
           <input name="nome" type="text" ref={nomeInput}/>
           <label htmlFor="endereco">Endereço: </label>
           <input name="endereco" type="text" ref={enderecoInput}/>
-          <button type="button" onClick={enviar}>
+          <div className="flex flex-col mt-5">
+          <button className="bg-green-600 hover:bg-green-500 mt-4 p-2 rounded" type="button" onClick={enviar}>
             Enviar Pedido
           </button>
-          <button type="button" onClick={buscarUsers}>
+          <button className="bg-blue-600 hover:bg-blue-500 mt-4 p-2 rounded" type="button" onClick={buscarUsers}>
             Buscar Users
           </button>
+          </div>
         </form>
       </div>
-      <div className="flex mt-10 flex-col gap-4">
+      <div className="max-w-[1300px] flex justify-center flex-wrap gap-4 ">
       {bd?.map((user) => (
-        <div key={user.id} className="flex flex-col p-2 rounded bg-red-300">
+        <div key={user.id} className="w-[400px] flex flex-col p-4 rounded bg-[#141920]">
           <p>Nome: {user.nome}</p>
           <p>Endereço: {user.endereco}</p>
-          <button onClick={() => apagar(user.id)} className="bg-red-600 p-2 rounded">Apagar</button>
+          <button onClick={() => apagar(user.id)} className="bg-red-600 mt-4 p-2 rounded">Apagar</button>
         </div>
       ))}
       </div>
