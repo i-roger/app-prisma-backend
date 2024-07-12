@@ -1,4 +1,4 @@
-# Aplicação desenvolvida com Next + TypeScript + Prisma + Tailwindcss
+# Aplicação desenvolvida com Next + TypeScript + Prisma + NextBACKEND 
 
 # 1 Instalação e criação do APP:
     npx create-next-app@latest my-project --typescript --eslint
